@@ -12,77 +12,33 @@ import {
   GraduationCap,
   MessageSquare,
   LogOut,
-  X,
   Menu,
+  X,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 const mainItems = [
-  {
-    name: "Dashboard",
-    icon: LayoutDashboard,
-    path: "/dashboard",
-  },
-  {
-    name: "Courses",
-    icon: BookOpen,
-    path: "/courses",
-  },
-  {
-    name: "Planner",
-    icon: CalendarDays,
-    path: "/planner",
-  },
-  {
-    name: "Goals",
-    icon: Target,
-    path: "/goals",
-  },
-  {
-    name: "Exams",
-    icon: FileText,
-    path: "/exams",
-  },
-  {
-    name: "Focus",
-    icon: Timer,
-    path: "/focus",
-  },
-  {
-    name: "Budget",
-    icon: Wallet,
-    path: "/budget",
-  },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Courses", icon: BookOpen, path: "/courses" },
+  { name: "Planner", icon: CalendarDays, path: "/planner" },
+  { name: "Goals", icon: Target, path: "/goals" },
+  { name: "Exams", icon: FileText, path: "/exams" },
+  { name: "Focus", icon: Timer, path: "/focus" },
+  { name: "Budget", icon: Wallet, path: "/budget" },
 ];
 
 const secondaryItems = [
-  {
-    name: "AI Assistant",
-    icon: Sparkles,
-    path: "/course-ai",
-  },
-  {
-    name: "Resources",
-    icon: GraduationCap,
-    path: "/courses",
-  },
-  {
-    name: "Messages",
-    icon: MessageSquare,
-    path: "/messages",
-  },
-  {
-    name: "Settings",
-    icon: Settings,
-    path: "/settings",
-  },
+  { name: "AI Assistant", icon: Sparkles, path: "/course-ai" },
+  { name: "Resources", icon: GraduationCap, path: "/courses" },
+  { name: "Messages", icon: MessageSquare, path: "/messages" },
+  { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
 function Sidebar() {
   const [user, setUser] = useState(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -98,7 +54,6 @@ function Sidebar() {
 
   const fullName =
     user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
     user?.email?.split("@")[0] ||
     "Student";
 
@@ -114,35 +69,25 @@ function Sidebar() {
   };
 
   const closeMobileSidebar = () => {
-    setMobileOpen(false);
+    setIsMobileOpen(false);
   };
 
   return (
     <>
-      {/* MOBILE TOP BAR */}
-      <div className="mobile-topbar">
+      {/* ================= MOBILE HAMBURGER ================= */}
 
-        <button
-          className="mobile-menu-button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open menu"
-        >
-          <Menu size={22} />
-        </button>
-
-        <div className="mobile-brand">
-          <div className="mobile-brand-icon">
-            <GraduationCap size={19} />
-          </div>
-
-          <span>UniMate</span>
-        </div>
-
-      </div>
+      <button
+        className="mobile-menu-button"
+        onClick={() => setIsMobileOpen(true)}
+        aria-label="Open menu"
+      >
+        <Menu size={22} />
+      </button>
 
 
-      {/* MOBILE OVERLAY */}
-      {mobileOpen && (
+      {/* ================= MOBILE OVERLAY ================= */}
+
+      {isMobileOpen && (
         <div
           className="sidebar-mobile-overlay"
           onClick={closeMobileSidebar}
@@ -150,14 +95,27 @@ function Sidebar() {
       )}
 
 
-      {/* SIDEBAR */}
+      {/* ================= SIDEBAR ================= */}
+
       <aside
         className={`uni-sidebar ${
-          mobileOpen ? "mobile-open" : ""
+          isMobileOpen ? "mobile-open" : ""
         }`}
       >
 
+        {/* MOBILE CLOSE */}
+
+        <button
+          className="mobile-sidebar-close"
+          onClick={closeMobileSidebar}
+          aria-label="Close menu"
+        >
+          <X size={21} />
+        </button>
+
+
         {/* BRAND */}
+
         <div className="sidebar-brand">
 
           <div className="sidebar-brand-icon">
@@ -168,19 +126,11 @@ function Sidebar() {
             UniMate
           </span>
 
-          {/* MOBILE CLOSE */}
-          <button
-            className="sidebar-mobile-close"
-            onClick={closeMobileSidebar}
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
-
         </div>
 
 
         {/* NAVIGATION */}
+
         <div className="sidebar-section">
 
           <span className="sidebar-section-title">
@@ -223,11 +173,8 @@ function Sidebar() {
 
 
         {/* SECONDARY */}
-        <div className="sidebar-secondary">
 
-          <span className="sidebar-menu-title secondary-title">
-            MORE
-          </span>
+        <div className="sidebar-secondary">
 
           {secondaryItems.map((item) => {
             const Icon = item.icon;
@@ -257,6 +204,7 @@ function Sidebar() {
 
 
         {/* USER */}
+
         <div className="sidebar-bottom">
 
           <div className="sidebar-user">
@@ -266,29 +214,18 @@ function Sidebar() {
             </div>
 
             <div className="sidebar-user-info">
-
-              <strong>
-                {fullName}
-              </strong>
-
-              <span>
-                {department}
-              </span>
-
+              <strong>{fullName}</strong>
+              <span>{department}</span>
             </div>
 
           </div>
-
 
           <button
             className="sidebar-logout"
             onClick={handleLogout}
           >
             <LogOut size={17} />
-
-            <span>
-              Logout
-            </span>
+            <span>Logout</span>
           </button>
 
         </div>

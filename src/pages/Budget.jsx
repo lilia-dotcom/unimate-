@@ -3,8 +3,6 @@ import {
   TrendingDown,
   PiggyBank,
   Plus,
-  ArrowUpRight,
-  ArrowDownRight,
   Coffee,
   Bus,
   BookOpen,
@@ -22,14 +20,18 @@ import {
   Pencil,
   Check,
   ShoppingBag,
-  GraduationCap,
+  Trophy,
+  ShieldCheck,
+  ArrowUpRight,
+  Star,
+  Award,
 } from "lucide-react";
 
 import { useMemo, useState } from "react";
 
 function Budget() {
   /* =====================================================
-     STATE
+     DATA
   ===================================================== */
 
   const [monthlyBudget, setMonthlyBudget] = useState(600);
@@ -99,6 +101,9 @@ function Budget() {
   const [moneyAmount, setMoneyAmount] = useState("");
   const [newBudget, setNewBudget] = useState("");
 
+  const [noSpendDays, setNoSpendDays] = useState(2);
+  const noSpendTarget = 3;
+
   /* =====================================================
      CATEGORY ICONS
   ===================================================== */
@@ -149,10 +154,6 @@ function Budget() {
         )
       : 0;
 
-  /*
-    Simple student daily allowance.
-    Assuming 30 days for the month.
-  */
   const daysLeft = Math.max(
     30 - new Date().getDate() + 1,
     1
@@ -162,8 +163,16 @@ function Budget() {
     remaining / daysLeft
   );
 
+  const averageDailySpend =
+    totalSpent > 0
+      ? Math.round(
+          totalSpent /
+            Math.max(new Date().getDate(), 1)
+        )
+      : 0;
+
   /* =====================================================
-     SAVINGS
+     GOALS
   ===================================================== */
 
   const totalGoalProgress = useMemo(() => {
@@ -185,7 +194,7 @@ function Budget() {
   }, [goals]);
 
   /* =====================================================
-     CATEGORY TOTALS
+     CATEGORIES
   ===================================================== */
 
   const categoryTotals = useMemo(() => {
@@ -217,27 +226,34 @@ function Budget() {
       icon: categoryIcons[name],
     }));
 
-  /* =====================================================
-     TOP CATEGORY
-  ===================================================== */
-
   const topCategory =
     categories.length > 0
       ? categories[0]
       : null;
 
   /* =====================================================
-     MONEY SCORE
+     MONEY HEALTH
   ===================================================== */
 
   const moneyScore =
     spendingPercentage <= 40
       ? 95
       : spendingPercentage <= 60
-      ? 82
-      : spendingPercentage <= 80
-      ? 68
-      : 45;
+      ? 85
+      : spendingPercentage <= 75
+      ? 72
+      : spendingPercentage <= 90
+      ? 58
+      : 40;
+
+  const moneyStatus =
+    moneyScore >= 85
+      ? "Excellent"
+      : moneyScore >= 70
+      ? "Good"
+      : moneyScore >= 55
+      ? "Careful"
+      : "Needs attention";
 
   /* =====================================================
      SMART INSIGHT
@@ -256,44 +272,94 @@ function Budget() {
       return {
         title: "Slow down a little 🚨",
         text:
-          "You've used almost all of your monthly budget. Try keeping your next purchases essential.",
-      };
-    }
-
-    if (spendingPercentage >= 75) {
-      return {
-        title: "Your budget needs attention 👀",
-        text:
-          "You're spending faster than ideal. A few smaller choices can protect the rest of your month.",
+          "You've used almost all of your monthly budget. Keep your next purchases essential.",
       };
     }
 
     if (topCategory?.name === "Coffee") {
       return {
-        title: "Coffee is your biggest expense ☕",
+        title: "Coffee is adding up ☕",
         text:
-          "Small daily purchases add up quickly. Cutting just a few coffees could boost your savings.",
+          "Small daily purchases can quietly become a big monthly expense.",
       };
     }
 
-    if (spendingPercentage <= 40) {
+    if (topCategory) {
       return {
-        title: "You're doing amazing ✨",
+        title: `${topCategory.name} is your biggest category`,
         text:
-          "You're keeping your spending under control. This is a great month to push your savings goals.",
+          `${topCategory.amount} is currently going toward ${topCategory.name}. Keep an eye on it to protect your savings.`,
       };
     }
 
     return {
       title: "You're on a good track 💜",
       text:
-        "Your spending is still manageable. Keep checking your budget before making non-essential purchases.",
+        "Your spending is still manageable. Keep checking your budget before non-essential purchases.",
     };
   }, [
     totalSpent,
     spendingPercentage,
     topCategory,
   ]);
+
+  /* =====================================================
+     SAVING PROJECTION
+  ===================================================== */
+
+  const laptopGoal = goals.find(
+    (goal) => goal.title === "New Laptop"
+  );
+
+  const laptopRemaining = laptopGoal
+    ? Math.max(
+        laptopGoal.target - laptopGoal.current,
+        0
+      )
+    : 0;
+
+  const projectedMonths =
+    remaining > 0 && laptopRemaining > 0
+      ? Math.ceil(
+          laptopRemaining / remaining
+        )
+      : 0;
+
+  /* =====================================================
+     ACHIEVEMENTS
+  ===================================================== */
+
+  const achievements = [
+    {
+      icon: "🌱",
+      title: "First Step",
+      text: "Track your first expense",
+      unlocked: expenses.length > 0,
+    },
+    {
+      icon: "💰",
+      title: "Saver",
+      text: "Keep money available",
+      unlocked: remaining >= monthlyBudget * 0.5,
+    },
+    {
+      icon: "🔥",
+      title: "7 Day Streak",
+      text: "Stay under your daily target",
+      unlocked: noSpendDays >= 3,
+    },
+    {
+      icon: "🎯",
+      title: "Goal Setter",
+      text: "Create a savings goal",
+      unlocked: goals.length > 0,
+    },
+  ];
+
+  const unlockedAchievements =
+    achievements.filter(
+      (achievement) => achievement.unlocked
+    ).length;
 
   /* =====================================================
      ADD EXPENSE
@@ -333,7 +399,11 @@ function Budget() {
      QUICK EXPENSE
   ===================================================== */
 
-  const quickExpense = (name, amount, category) => {
+  const quickExpense = (
+    name,
+    amount,
+    category
+  ) => {
     setExpenses((previous) => [
       {
         id: Date.now(),
@@ -391,7 +461,7 @@ function Budget() {
   };
 
   /* =====================================================
-     ADD MONEY TO GOAL
+     ADD MONEY
   ===================================================== */
 
   const addMoneyToGoal = () => {
@@ -449,7 +519,7 @@ function Budget() {
     <div className="page money-page">
 
       {/* =================================================
-          HERO HEADER
+          HEADER
       ================================================= */}
 
       <div className="page-header money-hero">
@@ -498,7 +568,7 @@ function Budget() {
       </div>
 
       {/* =================================================
-          MONEY OVERVIEW
+          HEALTH + OVERVIEW
       ================================================= */}
 
       <section className="money-overview">
@@ -541,7 +611,7 @@ function Budget() {
             </strong>
 
             <small>
-              {spendingPercentage}% of budget used
+              {spendingPercentage}% used
             </small>
           </div>
 
@@ -570,7 +640,55 @@ function Budget() {
       </section>
 
       {/* =================================================
-          DAILY MONEY MINI CARDS
+          MONEY HEALTH
+      ================================================= */}
+
+      <section className="money-health">
+
+        <div className="health-main">
+
+          <div className="health-icon">
+            <ShieldCheck size={22} />
+          </div>
+
+          <div>
+            <span className="card-label">
+              MONEY HEALTH
+            </span>
+
+            <h2>
+              {moneyStatus}
+            </h2>
+
+            <p>
+              Your spending habits are currently
+              {moneyScore >= 80
+                ? " looking strong."
+                : " worth watching a little more."}
+            </p>
+          </div>
+
+        </div>
+
+        <div className="health-score">
+          <strong>
+            {moneyScore}
+          </strong>
+          <span>/100</span>
+        </div>
+
+        <div className="health-bar">
+          <div
+            style={{
+              width: `${moneyScore}%`,
+            }}
+          />
+        </div>
+
+      </section>
+
+      {/* =================================================
+          MINI STATS
       ================================================= */}
 
       <div className="money-mini-grid">
@@ -583,12 +701,8 @@ function Budget() {
 
           <div>
             <span>DAILY LIMIT</span>
-            <strong>
-              ${dailyLimit}
-            </strong>
-            <small>
-              Suggested for today
-            </small>
+            <strong>${dailyLimit}</strong>
+            <small>Suggested for today</small>
           </div>
 
         </div>
@@ -596,19 +710,13 @@ function Budget() {
         <div className="money-mini-card">
 
           <div className="mini-icon">
-            <Zap size={17} />
+            <TrendingDown size={17} />
           </div>
 
           <div>
-            <span>MONEY SCORE</span>
-            <strong>
-              {moneyScore}/100
-            </strong>
-            <small>
-              {moneyScore >= 80
-                ? "Excellent habits"
-                : "Room to improve"}
-            </small>
+            <span>DAILY AVERAGE</span>
+            <strong>${averageDailySpend}</strong>
+            <small>Average spending</small>
           </div>
 
         </div>
@@ -621,12 +729,25 @@ function Budget() {
 
           <div>
             <span>GOAL PROGRESS</span>
+            <strong>{totalGoalProgress}%</strong>
+            <small>Across your goals</small>
+          </div>
+
+        </div>
+
+        <div className="money-mini-card">
+
+          <div className="mini-icon">
+            <Award size={17} />
+          </div>
+
+          <div>
+            <span>ACHIEVEMENTS</span>
             <strong>
-              {totalGoalProgress}%
+              {unlockedAchievements}/
+              {achievements.length}
             </strong>
-            <small>
-              Across your goals
-            </small>
+            <small>Unlocked</small>
           </div>
 
         </div>
@@ -646,7 +767,6 @@ function Budget() {
           </div>
 
           <div>
-
             <span className="card-label">
               MONTHLY BUDGET
             </span>
@@ -661,7 +781,6 @@ function Budget() {
                 ? `$${remaining} left for this month.`
                 : "You've reached your budget."}
             </p>
-
           </div>
 
         </div>
@@ -734,10 +853,12 @@ function Budget() {
             }
           >
             <Coffee size={17} />
+
             <span>
               Coffee
               <small>$5</small>
             </span>
+
             <ChevronRight size={15} />
           </button>
 
@@ -751,10 +872,12 @@ function Budget() {
             }
           >
             <Utensils size={17} />
+
             <span>
               Lunch
               <small>$12</small>
             </span>
+
             <ChevronRight size={15} />
           </button>
 
@@ -768,10 +891,12 @@ function Budget() {
             }
           >
             <Bus size={17} />
+
             <span>
               Bus
               <small>$3</small>
             </span>
+
             <ChevronRight size={15} />
           </button>
 
@@ -785,13 +910,78 @@ function Budget() {
             }
           >
             <BookOpen size={17} />
+
             <span>
               Study
               <small>$10</small>
             </span>
+
             <ChevronRight size={15} />
           </button>
 
+        </div>
+
+      </section>
+
+      {/* =================================================
+          NO SPEND CHALLENGE
+      ================================================= */}
+
+      <section className="no-spend-card">
+
+        <div className="no-spend-icon">
+          <Flame size={22} />
+        </div>
+
+        <div className="no-spend-content">
+
+          <span className="card-label">
+            MINI CHALLENGE
+          </span>
+
+          <h2>
+            No-Spend Challenge 🔥
+          </h2>
+
+          <p>
+            Stay under your daily limit for
+            {noSpendTarget} days.
+          </p>
+
+          <div className="challenge-dots">
+
+            {Array.from({
+              length: noSpendTarget,
+            }).map((_, index) => (
+              <button
+                key={index}
+                className={
+                  index < noSpendDays
+                    ? "challenge-dot active"
+                    : "challenge-dot"
+                }
+                onClick={() =>
+                  setNoSpendDays(
+                    Math.min(
+                      noSpendTarget,
+                      index + 1
+                    )
+                  )
+                }
+              >
+                {index < noSpendDays ? "✓" : index + 1}
+              </button>
+            ))}
+
+          </div>
+
+        </div>
+
+        <div className="no-spend-reward">
+          <Star size={16} />
+          <strong>
+            +50 XP
+          </strong>
         </div>
 
       </section>
@@ -928,6 +1118,56 @@ function Budget() {
       </div>
 
       {/* =================================================
+          SAVING PROJECTION
+      ================================================= */}
+
+      <section className="saving-projection">
+
+        <div className="projection-icon">
+          <Zap size={22} />
+        </div>
+
+        <div className="projection-content">
+
+          <span className="card-label">
+            SMART SAVING PLAN
+          </span>
+
+          <h2>
+            Your next big purchase
+          </h2>
+
+          <p>
+            {laptopRemaining > 0
+              ? `If you save your remaining monthly money, your laptop goal could take around ${projectedMonths} month${
+                  projectedMonths === 1
+                    ? ""
+                    : "s"
+                }.`
+              : "You've reached your laptop goal! 🎉"}
+          </p>
+
+        </div>
+
+        <div className="projection-number">
+
+          <strong>
+            {laptopRemaining > 0
+              ? `$${laptopRemaining}`
+              : "DONE"}
+          </strong>
+
+          <span>
+            {laptopRemaining > 0
+              ? "left to goal"
+              : "goal reached"}
+          </span>
+
+        </div>
+
+      </section>
+
+      {/* =================================================
           RECENT EXPENSES
       ================================================= */}
 
@@ -999,7 +1239,6 @@ function Budget() {
                         expense.id
                       )
                     }
-                    title="Delete expense"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -1105,18 +1344,87 @@ function Budget() {
                   }
                 >
 
-                  <Plus size={15} />
-
                   {goal.current >=
-                  goal.target
-                    ? "Goal reached"
-                    : "Add money"}
+                  goal.target ? (
+                    <>
+                      <Check size={15} />
+                      Goal reached
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={15} />
+                      Add money
+                    </>
+                  )}
 
                 </button>
 
               </div>
             );
           })}
+
+        </div>
+
+      </section>
+
+      {/* =================================================
+          ACHIEVEMENTS
+      ================================================= */}
+
+      <section className="achievements-section">
+
+        <div className="section-heading">
+
+          <div>
+            <span className="card-label">
+              YOUR ACHIEVEMENTS
+            </span>
+
+            <h2>
+              Build better money habits 🏆
+            </h2>
+          </div>
+
+          <span className="expense-count">
+            {unlockedAchievements} unlocked
+          </span>
+
+        </div>
+
+        <div className="achievement-grid">
+
+          {achievements.map(
+            (achievement) => (
+              <div
+                className={
+                  achievement.unlocked
+                    ? "achievement-card unlocked"
+                    : "achievement-card"
+                }
+                key={achievement.title}
+              >
+
+                <div className="achievement-icon">
+                  {achievement.icon}
+                </div>
+
+                <div>
+                  <h3>
+                    {achievement.title}
+                  </h3>
+
+                  <p>
+                    {achievement.text}
+                  </p>
+                </div>
+
+                {achievement.unlocked && (
+                  <Check size={17} />
+                )}
+
+              </div>
+            )
+          )}
 
         </div>
 
@@ -1139,11 +1447,11 @@ function Budget() {
           </span>
 
           <h3>
-            7 days on track 🔥
+            {noSpendDays} days on track 🔥
           </h3>
 
           <p>
-            You've stayed under your daily
+            Keep staying under your daily
             spending target.
           </p>
 
@@ -1208,6 +1516,7 @@ function Budget() {
                 )
               }
               placeholder="e.g. Lunch"
+              autoFocus
             />
 
             <label>
@@ -1274,7 +1583,7 @@ function Budget() {
       )}
 
       {/* =================================================
-          ADD GOAL MODAL
+          GOAL MODAL
       ================================================= */}
 
       {showGoal && (
@@ -1459,6 +1768,7 @@ function Budget() {
                 )
               }
               placeholder="50"
+              autoFocus
             />
 
             <div className="money-modal-actions">
@@ -1488,7 +1798,7 @@ function Budget() {
       )}
 
       {/* =================================================
-          EDIT BUDGET MODAL
+          BUDGET MODAL
       ================================================= */}
 
       {showBudget && (
@@ -1558,6 +1868,7 @@ function Budget() {
                 )
               }
               placeholder={monthlyBudget}
+              autoFocus
             />
 
             <div className="money-modal-actions">

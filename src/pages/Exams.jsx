@@ -48,7 +48,6 @@ const initialExams = [
 
 function Exams() {
   const [exams, setExams] = useState(initialExams);
-
   const [showModal, setShowModal] = useState(false);
 
   const [newExam, setNewExam] = useState({
@@ -62,7 +61,7 @@ function Exams() {
       ? 0
       : Math.round(
           exams.reduce(
-            (total, exam) => total + exam.progress,
+            (sum, exam) => sum + exam.progress,
             0
           ) / exams.length
         );
@@ -78,19 +77,17 @@ function Exams() {
   const addExam = () => {
     if (!newExam.subject.trim() || !newExam.date) return;
 
-    const exam = {
-      id: Date.now(),
-      subject: newExam.subject.trim(),
-      date: newExam.date,
-      days: 30,
-      type: newExam.type,
-      progress: 0,
-      notes: 0,
-    };
-
-    setExams((previous) => [
-      ...previous,
-      exam,
+    setExams((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        subject: newExam.subject.trim(),
+        date: newExam.date,
+        days: 30,
+        type: newExam.type,
+        progress: 0,
+        notes: 0,
+      },
     ]);
 
     setNewExam({
@@ -103,16 +100,14 @@ function Exams() {
   };
 
   const deleteExam = (id) => {
-    setExams((previous) =>
-      previous.filter(
-        (exam) => exam.id !== id
-      )
+    setExams((prev) =>
+      prev.filter((exam) => exam.id !== id)
     );
   };
 
   const increaseProgress = (id) => {
-    setExams((previous) =>
-      previous.map((exam) =>
+    setExams((prev) =>
+      prev.map((exam) =>
         exam.id === id
           ? {
               ...exam,
@@ -131,8 +126,7 @@ function Exams() {
 
       {/* HEADER */}
 
-      <div className="page-header">
-
+      <header className="page-header">
         <div>
           <span className="eyebrow">
             EXAM CENTER
@@ -146,14 +140,14 @@ function Exams() {
         </div>
 
         <button
-          className="primary-button exam-add-button"
+          className="primary-button"
           onClick={() => setShowModal(true)}
         >
           <Plus size={17} />
           Add exam
         </button>
+      </header>
 
-      </div>
 
       {/* HERO */}
 
@@ -182,30 +176,30 @@ function Exams() {
 
         <div className="exam-hero-visual">
 
+          <div className="exam-hero-circle">
+            <Trophy size={52} />
+          </div>
+
           <div className="floating-exam-card card-one">
-            <BookOpen size={17} />
+            <BookOpen size={16} />
             <span>Study smarter</span>
           </div>
 
           <div className="floating-exam-card card-two">
-            <CheckCircle2 size={17} />
+            <CheckCircle2 size={16} />
             <span>Stay prepared</span>
-          </div>
-
-          <div className="exam-hero-circle">
-            <Trophy size={55} />
           </div>
 
         </div>
 
       </section>
 
+
       {/* STATS */}
 
-      <div className="exam-overview">
+      <section className="exam-overview">
 
         <div className="exam-stat-main">
-
           <div className="exam-stat-icon">
             <Target size={22} />
           </div>
@@ -216,7 +210,6 @@ function Exams() {
               {overallReadiness}%
             </strong>
           </div>
-
         </div>
 
         <div className="exam-stat">
@@ -234,7 +227,8 @@ function Exams() {
           <strong>{urgentExams}</strong>
         </div>
 
-      </div>
+      </section>
+
 
       {/* MOTIVATION */}
 
@@ -245,21 +239,20 @@ function Exams() {
         </div>
 
         <div>
-
           <span>KEEP GOING</span>
 
           <p>
             You don't need to study everything today.
             Just make today's progress count.
           </p>
-
         </div>
 
       </section>
 
-      {/* EXAMS HEADER */}
 
-      <div className="exam-section-header">
+      {/* TITLE */}
+
+      <section className="exam-section-header">
 
         <div>
           <span className="eyebrow">
@@ -275,15 +268,16 @@ function Exams() {
           {exams.length} exams
         </span>
 
-      </div>
+      </section>
 
-      {/* EXAM GRID */}
 
-      <div className="exam-grid">
+      {/* EXAMS */}
+
+      <section className="exam-grid">
 
         {exams.map((exam) => (
 
-          <div
+          <article
             className={
               exam.days <= 20
                 ? "exam-card urgent"
@@ -304,11 +298,13 @@ function Exams() {
 
             </div>
 
+
             <h3>{exam.subject}</h3>
 
             <p className="exam-date">
               {exam.date}
             </p>
+
 
             <div className="exam-countdown">
 
@@ -324,33 +320,29 @@ function Exams() {
 
             </div>
 
-            {/* PREPARATION */}
+
+            {/* PROGRESS */}
 
             <div className="exam-progress-section">
 
               <div className="exam-progress-header">
-
-                <span>
-                  Preparation
-                </span>
+                <span>Preparation</span>
 
                 <strong>
                   {exam.progress}%
                 </strong>
-
               </div>
 
               <div className="exam-progress-bar">
-
                 <div
                   style={{
                     width: `${exam.progress}%`,
                   }}
                 />
-
               </div>
 
             </div>
+
 
             {/* NOTES */}
 
@@ -364,54 +356,50 @@ function Exams() {
                 </span>
               </div>
 
-              <button>
+              <button type="button">
                 View notes
                 <ArrowUpRight size={13} />
               </button>
 
             </div>
 
+
             {/* STATUS */}
 
             {exam.days <= 20 ? (
-
               <div className="exam-warning">
                 <AlertCircle size={15} />
                 Coming soon — keep studying
               </div>
-
             ) : exam.progress >= 75 ? (
-
               <div className="exam-ready">
                 <CheckCircle2 size={15} />
                 You're looking good
               </div>
-
             ) : (
-
               <div className="exam-preparing">
                 <Clock3 size={15} />
                 Keep preparing
               </div>
-
             )}
+
 
             {/* ACTIONS */}
 
             <div className="exam-actions">
 
               <button
+                type="button"
                 onClick={() =>
                   increaseProgress(exam.id)
                 }
-                disabled={
-                  exam.progress >= 100
-                }
+                disabled={exam.progress >= 100}
               >
                 +10% progress
               </button>
 
               <button
+                type="button"
                 className="exam-delete"
                 onClick={() =>
                   deleteExam(exam.id)
@@ -422,11 +410,12 @@ function Exams() {
 
             </div>
 
-          </div>
+          </article>
 
         ))}
 
-      </div>
+      </section>
+
 
       {/* REWARD */}
 
@@ -437,10 +426,7 @@ function Exams() {
         </div>
 
         <div>
-
-          <span>
-            YOUR NEXT REWARD
-          </span>
+          <span>YOUR NEXT REWARD</span>
 
           <h2>
             Become Exam Ready
@@ -450,60 +436,51 @@ function Exams() {
             Reach 90% preparation across your exams
             and unlock your next achievement.
           </p>
-
         </div>
 
         <div className="reward-progress">
-
           <strong>
             {overallReadiness}%
           </strong>
 
-          <span>
-            / 90%
-          </span>
-
+          <span>/ 90%</span>
         </div>
 
       </section>
 
-      {/* ADD EXAM MODAL */}
+
+      {/* MODAL */}
 
       {showModal && (
 
         <div
           className="exam-modal-overlay"
-          onClick={() =>
-            setShowModal(false)
-          }
+          onClick={() => setShowModal(false)}
         >
 
           <div
             className="exam-modal"
-            onClick={(event) =>
-              event.stopPropagation()
+            onClick={(e) =>
+              e.stopPropagation()
             }
           >
 
             <div className="exam-modal-header">
 
               <div>
-
                 <span className="card-label">
                   NEW EXAM
                 </span>
 
-                <h2>
-                  Add an exam
-                </h2>
+                <h2>Add an exam</h2>
 
                 <p>
                   Keep your important dates in one place.
                 </p>
-
               </div>
 
               <button
+                type="button"
                 onClick={() =>
                   setShowModal(false)
                 }
@@ -513,6 +490,7 @@ function Exams() {
 
             </div>
 
+
             <div className="exam-form">
 
               <label>
@@ -520,18 +498,17 @@ function Exams() {
 
                 <input
                   value={newExam.subject}
-                  onChange={(event) =>
+                  onChange={(e) =>
                     setNewExam({
                       ...newExam,
-                      subject:
-                        event.target.value,
+                      subject: e.target.value,
                     })
                   }
                   placeholder="e.g. Database Systems"
                   autoFocus
                 />
-
               </label>
+
 
               <label>
                 Exam date
@@ -539,55 +516,42 @@ function Exams() {
                 <input
                   type="date"
                   value={newExam.date}
-                  onChange={(event) =>
+                  onChange={(e) =>
                     setNewExam({
                       ...newExam,
-                      date:
-                        event.target.value,
+                      date: e.target.value,
                     })
                   }
                 />
-
               </label>
+
 
               <label>
                 Exam type
 
                 <select
                   value={newExam.type}
-                  onChange={(event) =>
+                  onChange={(e) =>
                     setNewExam({
                       ...newExam,
-                      type:
-                        event.target.value,
+                      type: e.target.value,
                     })
                   }
                 >
-                  <option>
-                    Final Exam
-                  </option>
-
-                  <option>
-                    Midterm
-                  </option>
-
-                  <option>
-                    Quiz
-                  </option>
-
-                  <option>
-                    Project
-                  </option>
-
+                  <option>Final Exam</option>
+                  <option>Midterm</option>
+                  <option>Quiz</option>
+                  <option>Project</option>
                 </select>
-
               </label>
 
             </div>
 
+
             <div className="exam-modal-actions">
 
               <button
+                type="button"
                 className="secondary-button"
                 onClick={() =>
                   setShowModal(false)
@@ -597,6 +561,7 @@ function Exams() {
               </button>
 
               <button
+                type="button"
                 className="primary-button"
                 onClick={addExam}
                 disabled={

@@ -7,6 +7,9 @@ import {
   X,
   Trash2,
   FileText,
+  StickyNote,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import { useState } from "react";
@@ -23,6 +26,8 @@ const weekDays = [
   { day: "WED", date: 26 },
   { day: "THU", date: 27 },
   { day: "FRI", date: 28 },
+  { day: "SAT", date: 29 },
+  { day: "SUN", date: 30 },
 ];
 
 function Planner() {
@@ -49,7 +54,23 @@ function Planner() {
       note: "",
       completed: false,
     },
+    {
+      id: 3,
+      day: 26,
+      title: "Review programming notes",
+      time: "11:00 AM — 12:00 PM",
+      course: "Computer Programming",
+      note: "Focus on loops and arrays.",
+      completed: false,
+    },
   ]);
+
+  const [notes, setNotes] = useState(() => {
+    return (
+      localStorage.getItem("unimate_planner_notes") ||
+      ""
+    );
+  });
 
   const [newTask, setNewTask] = useState({
     title: "",
@@ -58,9 +79,24 @@ function Planner() {
     note: "",
   });
 
+  const selectedDayInfo = weekDays.find(
+    (day) => day.date === selectedDay
+  );
+
   const selectedTasks = tasks.filter(
     (task) => task.day === selectedDay
   );
+
+  const completedCount = selectedTasks.filter(
+    (task) => task.completed
+  ).length;
+
+  const progress =
+    selectedTasks.length === 0
+      ? 0
+      : Math.round(
+          (completedCount / selectedTasks.length) * 100
+        );
 
   const addTask = () => {
     if (!newTask.title.trim()) return;
@@ -106,12 +142,50 @@ function Planner() {
     );
   };
 
+  const updateNotes = (value) => {
+    setNotes(value);
+
+    localStorage.setItem(
+      "unimate_planner_notes",
+      value
+    );
+  };
+
+  const goPreviousDay = () => {
+    const currentIndex = weekDays.findIndex(
+      (day) => day.date === selectedDay
+    );
+
+    if (currentIndex > 0) {
+      setSelectedDay(
+        weekDays[currentIndex - 1].date
+      );
+    }
+  };
+
+  const goNextDay = () => {
+    const currentIndex = weekDays.findIndex(
+      (day) => day.date === selectedDay
+    );
+
+    if (
+      currentIndex < weekDays.length - 1
+    ) {
+      setSelectedDay(
+        weekDays[currentIndex + 1].date
+      );
+    }
+  };
+
   return (
     <div className="page planner-page">
 
-      {/* HEADER */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
       <div className="page-header">
+
         <div>
           <span className="eyebrow">
             ORGANIZE YOUR WEEK
@@ -131,23 +205,50 @@ function Planner() {
           <Plus size={17} />
           Add task
         </button>
+
       </div>
 
-      {/* CALENDAR */}
+
+      {/* =================================================
+          CALENDAR
+      ================================================= */}
 
       <div className="planner-calendar content-card">
 
         <div className="planner-calendar-header">
+
           <div>
             <span className="card-label">
               WEEK OVERVIEW
             </span>
 
-            <h3>August 24 — 30</h3>
+            <h3>
+              August 24 — 30
+            </h3>
           </div>
 
-          <CalendarDays size={21} />
+          <div className="planner-calendar-controls">
+
+            <button
+              onClick={goPreviousDay}
+              disabled={selectedDay === 24}
+            >
+              <ChevronLeft size={17} />
+            </button>
+
+            <CalendarDays size={21} />
+
+            <button
+              onClick={goNextDay}
+              disabled={selectedDay === 30}
+            >
+              <ChevronRight size={17} />
+            </button>
+
+          </div>
+
         </div>
+
 
         <div className="week-days">
 
@@ -163,6 +264,7 @@ function Planner() {
               ).length;
 
             return (
+
               <button
                 key={day.date}
                 className={
@@ -175,34 +277,127 @@ function Planner() {
                 }
               >
 
-                <span>{day.day}</span>
+                <span>
+                  {day.day}
+                </span>
 
-                <strong>{day.date}</strong>
+                <strong>
+                  {day.date}
+                </strong>
 
                 {dayTasks.length > 0 && (
+
                   <small>
                     {completedTasks}/{dayTasks.length}
+                  </small>
+
+                )}
+
+                {dayTasks.length === 0 && (
+                  <small className="day-empty">
+                    —
                   </small>
                 )}
 
               </button>
+
             );
           })}
 
         </div>
+
       </div>
 
-      {/* CONTENT */}
+
+      {/* =================================================
+          NOTES
+      ================================================= */}
+
+      <div className="planner-notes-section">
+
+        <div className="planner-notes-card">
+
+          <div className="planner-notes-header">
+
+            <div className="planner-notes-title">
+
+              <div className="planner-notes-icon">
+                <StickyNote size={19} />
+              </div>
+
+              <div>
+
+                <span className="card-label">
+                  PERSONAL SPACE
+                </span>
+
+                <h3>
+                  My Notes
+                </h3>
+
+              </div>
+
+            </div>
+
+            <span className="planner-notes-hint">
+              Your private study space
+            </span>
+
+          </div>
+
+
+          <textarea
+            className="planner-notes-input"
+            value={notes}
+            onChange={(event) =>
+              updateNotes(event.target.value)
+            }
+            placeholder={`Write anything here...
+
+• Things you need to remember
+• Ideas for your next study session
+• Important deadlines
+• Personal reminders
+• Study notes...
+
+This space is yours.`}
+          />
+
+
+          <div className="planner-notes-footer">
+
+            <span>
+              {notes.length} characters
+            </span>
+
+            <span className="notes-saved">
+              ✓ Saved automatically
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* =================================================
+          MAIN CONTENT
+      ================================================= */}
 
       <div className="planner-content">
 
-        {/* TODAY */}
+
+        {/* =================================================
+            TASKS
+        ================================================= */}
 
         <div className="content-card planner-tasks-card">
 
           <div className="card-header">
 
             <div>
+
               <span className="card-label">
                 {selectedDay === 24
                   ? "TODAY"
@@ -210,10 +405,11 @@ function Planner() {
               </span>
 
               <h3>
-                {weekDays.find(
-                  (day) => day.date === selectedDay
-                )?.day || "Day"}
+                {selectedDayInfo?.day}
+                {" "}
+                {selectedDayInfo?.date}
               </h3>
+
             </div>
 
             <span className="planner-task-count">
@@ -225,6 +421,7 @@ function Planner() {
 
           </div>
 
+
           {selectedTasks.length === 0 ? (
 
             <div className="planner-empty">
@@ -233,16 +430,20 @@ function Planner() {
                 <CalendarDays size={25} />
               </div>
 
-              <h3>No tasks yet</h3>
+              <h3>
+                Your day is clear
+              </h3>
 
               <p>
-                Your day is clear. Add a task to start
-                planning.
+                Nothing planned yet. Add a task
+                and make the most of your day.
               </p>
 
               <button
                 className="primary-button"
-                onClick={() => setShowModal(true)}
+                onClick={() =>
+                  setShowModal(true)
+                }
               >
                 <Plus size={16} />
                 Add task
@@ -269,6 +470,7 @@ function Planner() {
                     <BookOpen size={18} />
                   </div>
 
+
                   <div className="task-info">
 
                     <strong>
@@ -285,13 +487,16 @@ function Planner() {
                     </span>
 
                     {task.note && (
+
                       <span className="task-note">
                         <FileText size={12} />
                         {task.note}
                       </span>
+
                     )}
 
                   </div>
+
 
                   <div className="task-actions">
 
@@ -313,6 +518,7 @@ function Planner() {
                       <CheckCircle2 size={20} />
                     </button>
 
+
                     <button
                       className="task-delete"
                       onClick={() =>
@@ -330,24 +536,29 @@ function Planner() {
               ))}
 
             </div>
+
           )}
 
         </div>
 
-        {/* PROGRESS */}
+
+        {/* =================================================
+            PROGRESS
+        ================================================= */}
 
         <div className="content-card planner-progress-card">
 
           <span className="card-label">
-            TODAY'S PROGRESS
+            {selectedDay === 24
+              ? "TODAY'S PROGRESS"
+              : "DAY PROGRESS"}
           </span>
+
 
           <div className="progress-number">
 
             <strong>
-              {selectedTasks.filter(
-                (task) => task.completed
-              ).length}
+              {completedCount}
             </strong>
 
             <span>
@@ -356,45 +567,51 @@ function Planner() {
 
           </div>
 
+
           <p>
+
             {selectedTasks.length === 0
               ? "No tasks planned yet."
-              : selectedTasks.every(
-                  (task) => task.completed
-                )
+              : progress === 100
               ? "Amazing! Everything is completed."
-              : "Keep going. You are making progress."}
+              : progress >= 50
+              ? "You're doing great. Keep going."
+              : "Start small. One task at a time."}
+
           </p>
 
+
           <div className="planner-progress-bar">
+
             <span
               style={{
-                width:
-                  selectedTasks.length === 0
-                    ? "0%"
-                    : `${
-                        (selectedTasks.filter(
-                          (task) =>
-                            task.completed
-                        ).length /
-                          selectedTasks.length) *
-                        100
-                      }%`,
+                width: `${progress}%`,
               }}
             />
+
+          </div>
+
+
+          <div className="planner-progress-percent">
+            {progress}% completed
           </div>
 
         </div>
 
       </div>
 
-      {/* ADD TASK MODAL */}
+
+      {/* =================================================
+          ADD TASK MODAL
+      ================================================= */}
 
       {showModal && (
 
         <div
           className="planner-modal-overlay"
-          onClick={() => setShowModal(false)}
+          onClick={() =>
+            setShowModal(false)
+          }
         >
 
           <div
@@ -407,21 +624,23 @@ function Planner() {
             <div className="planner-modal-header">
 
               <div>
+
                 <span className="card-label">
                   NEW TASK
                 </span>
 
-                <h2>Add to your planner</h2>
+                <h2>
+                  Add to your planner
+                </h2>
 
                 <p>
                   Plan something for{" "}
-                  {weekDays.find(
-                    (day) =>
-                      day.date === selectedDay
-                  )?.day}
-                  .
+                  {selectedDayInfo?.day}{" "}
+                  {selectedDayInfo?.date}.
                 </p>
+
               </div>
+
 
               <button
                 className="planner-modal-close"
@@ -434,6 +653,7 @@ function Planner() {
 
             </div>
 
+
             <div className="planner-form">
 
               <label>
@@ -444,13 +664,16 @@ function Planner() {
                   onChange={(event) =>
                     setNewTask({
                       ...newTask,
-                      title: event.target.value,
+                      title:
+                        event.target.value,
                     })
                   }
                   placeholder="e.g. Study algorithms"
                   autoFocus
                 />
+
               </label>
+
 
               <label>
                 Time
@@ -461,12 +684,15 @@ function Planner() {
                   onChange={(event) =>
                     setNewTask({
                       ...newTask,
-                      time: event.target.value,
+                      time:
+                        event.target.value,
                     })
                   }
                   placeholder="e.g. 10:00 AM — 11:30 AM"
                 />
+
               </label>
+
 
               <label>
                 Course
@@ -476,20 +702,27 @@ function Planner() {
                   onChange={(event) =>
                     setNewTask({
                       ...newTask,
-                      course: event.target.value,
+                      course:
+                        event.target.value,
                     })
                   }
                 >
+
                   {courses.map((course) => (
+
                     <option
                       key={course}
                       value={course}
                     >
                       {course}
                     </option>
+
                   ))}
+
                 </select>
+
               </label>
+
 
               <label>
                 Note
@@ -499,7 +732,8 @@ function Planner() {
                   onChange={(event) =>
                     setNewTask({
                       ...newTask,
-                      note: event.target.value,
+                      note:
+                        event.target.value,
                     })
                   }
                   placeholder="Add a note or reminder..."
@@ -508,6 +742,7 @@ function Planner() {
               </label>
 
             </div>
+
 
             <div className="planner-modal-actions">
 
@@ -520,10 +755,13 @@ function Planner() {
                 Cancel
               </button>
 
+
               <button
                 className="primary-button"
                 onClick={addTask}
-                disabled={!newTask.title.trim()}
+                disabled={
+                  !newTask.title.trim()
+                }
               >
                 <Plus size={16} />
                 Add task

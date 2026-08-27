@@ -12,9 +12,48 @@ import {
   CheckCircle2,
   SkipForward,
   ExternalLink,
+  Target,
+  Sparkles,
+  Brain,
+  Trophy,
+  Zap,
+  Plus,
+  Check,
+  X,
+  Moon,
+  ListTodo,
+  PenLine,
+  Music2,
+  BarChart3,
 } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
+
+const quotes = [
+  "One focused hour can change your whole day.",
+  "You don't need motivation. You need one small start.",
+  "Deep work today. A better version of you tomorrow.",
+  "Protect your focus. Your goals deserve your attention.",
+  "Small sessions become big results.",
+];
+
+const defaultTasks = [
+  {
+    id: 1,
+    title: "Review Software Engineering",
+    done: false,
+  },
+  {
+    id: 2,
+    title: "Practice 10 programming exercises",
+    done: false,
+  },
+  {
+    id: 3,
+    title: "Review today's notes",
+    done: true,
+  },
+];
 
 function Focus() {
   const audioRef = useRef(null);
@@ -28,13 +67,40 @@ function Focus() {
   const [mode, setMode] = useState("focus");
   const [seconds, setSeconds] = useState(durations.focus);
   const [isRunning, setIsRunning] = useState(false);
+
   const [sessions, setSessions] = useState(3);
+  const [focusMinutes, setFocusMinutes] = useState(75);
 
   const [sound, setSound] = useState("rain");
   const [soundPlaying, setSoundPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
 
-  /* TIMER */
+  const [mission, setMission] = useState(
+    "Master Software Engineering"
+  );
+
+  const [missionInput, setMissionInput] = useState(
+    "Master Software Engineering"
+  );
+
+  const [editingMission, setEditingMission] =
+    useState(false);
+
+  const [notes, setNotes] = useState("");
+
+  const [tasks, setTasks] =
+    useState(defaultTasks);
+
+  const [newTask, setNewTask] =
+    useState("");
+
+  const [showTaskInput, setShowTaskInput] =
+    useState(false);
+
+  const [quoteIndex, setQuoteIndex] =
+    useState(0);
+
+  /* ================= TIMER ================= */
 
   useEffect(() => {
     if (!isRunning) return;
@@ -44,14 +110,15 @@ function Focus() {
         if (previous <= 1) {
           setIsRunning(false);
 
+          if (mode === "focus") {
+            setSessions((value) => value + 1);
+            setFocusMinutes((value) => value + 25);
+          }
+
           if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
             setSoundPlaying(false);
-          }
-
-          if (mode === "focus") {
-            setSessions((value) => value + 1);
           }
 
           return 0;
@@ -64,10 +131,20 @@ function Focus() {
     return () => clearInterval(interval);
   }, [isRunning, mode]);
 
-  /* RAIN PLAY / PAUSE */
+  /* ================= AUDIO ================= */
+
+  const stopSound = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+
+    setSoundPlaying(false);
+  };
 
   const toggleSound = async () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || sound !== "rain")
+      return;
 
     if (soundPlaying) {
       audioRef.current.pause();
@@ -75,29 +152,21 @@ function Focus() {
       return;
     }
 
-    if (sound === "rain") {
-      audioRef.current.volume = muted ? 0 : 0.35;
+    audioRef.current.volume = muted ? 0 : 0.35;
 
-      try {
-        await audioRef.current.play();
-        setSoundPlaying(true);
-      } catch (error) {
-        console.error("Audio error:", error);
-      }
+    try {
+      await audioRef.current.play();
+      setSoundPlaying(true);
+    } catch (error) {
+      console.error(error);
     }
   };
 
-  /* FOCUS */
+  /* ================= FOCUS ================= */
 
   const toggleFocus = async () => {
     if (isRunning) {
       setIsRunning(false);
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-        setSoundPlaying(false);
-      }
-
       return;
     }
 
@@ -114,41 +183,29 @@ function Focus() {
         await audioRef.current.play();
         setSoundPlaying(true);
       } catch (error) {
-        console.error("Audio error:", error);
+        console.error(error);
       }
     }
   };
 
-  /* MODE */
+  /* ================= MODE ================= */
 
   const changeMode = (newMode) => {
     setMode(newMode);
     setIsRunning(false);
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setSoundPlaying(false);
-    }
-
+    stopSound();
     setSeconds(durations[newMode]);
   };
 
-  /* RESET */
+  /* ================= RESET ================= */
 
   const resetTimer = () => {
     setIsRunning(false);
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setSoundPlaying(false);
-    }
-
+    stopSound();
     setSeconds(durations[mode]);
   };
 
-  /* SKIP */
+  /* ================= SKIP ================= */
 
   const skipSession = () => {
     if (mode === "focus") {
@@ -158,38 +215,79 @@ function Focus() {
     }
   };
 
-  /* MUTE */
+  /* ================= MUTE ================= */
 
   const toggleMute = () => {
     setMuted((previous) => {
-      const newMuted = !previous;
+      const next = !previous;
 
       if (audioRef.current) {
-        audioRef.current.volume = newMuted
+        audioRef.current.volume = next
           ? 0
           : 0.35;
       }
 
-      return newMuted;
+      return next;
     });
   };
 
-  /* SOUND SELECT */
+  /* ================= SOUND ================= */
 
   const selectSound = (newSound) => {
     setSound(newSound);
 
     if (newSound !== "rain") {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-
-      setSoundPlaying(false);
+      stopSound();
     }
   };
 
-  /* TIME */
+  /* ================= MISSION ================= */
+
+  const saveMission = () => {
+    if (!missionInput.trim()) return;
+
+    setMission(missionInput.trim());
+    setEditingMission(false);
+  };
+
+  /* ================= TASKS ================= */
+
+  const toggleTask = (id) => {
+    setTasks((previous) =>
+      previous.map((task) =>
+        task.id === id
+          ? {
+              ...task,
+              done: !task.done,
+            }
+          : task
+      )
+    );
+  };
+
+  const addTask = () => {
+    if (!newTask.trim()) return;
+
+    setTasks((previous) => [
+      ...previous,
+      {
+        id: Date.now(),
+        title: newTask.trim(),
+        done: false,
+      },
+    ]);
+
+    setNewTask("");
+    setShowTaskInput(false);
+  };
+
+  const removeTask = (id) => {
+    setTasks((previous) =>
+      previous.filter((task) => task.id !== id)
+    );
+  };
+
+  /* ================= TIME ================= */
 
   const minutes = Math.floor(seconds / 60)
     .toString()
@@ -204,6 +302,16 @@ function Focus() {
       durations[mode]) *
     100;
 
+  const completedTasks =
+    tasks.filter((task) => task.done).length;
+
+  const taskProgress =
+    tasks.length === 0
+      ? 0
+      : Math.round(
+          (completedTasks / tasks.length) * 100
+        );
+
   return (
     <div className="page focus-page">
 
@@ -216,33 +324,140 @@ function Focus() {
         preload="auto"
       />
 
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
 
-      <div className="page-header">
+      <div className="focus-header">
 
         <div>
+
           <span className="eyebrow">
-            DEEP WORK
+            PERSONAL FOCUS STUDIO
           </span>
 
-          <h1>Focus Mode</h1>
+          <h1>
+            Deep Focus
+          </h1>
 
           <p>
-            Create your little study space and
-            get things done.
+            Clear your mind. Choose one thing.
+            Make it count.
           </p>
+
         </div>
 
-        <div className="focus-streak">
-          <Flame size={17} />
-          <span>
-            {sessions} sessions today
-          </span>
+        <div className="focus-header-right">
+
+          <div className="focus-score">
+            <div className="focus-score-icon">
+              <Flame size={17} />
+            </div>
+
+            <div>
+              <strong>
+                {sessions}
+              </strong>
+
+              <span>
+                sessions today
+              </span>
+            </div>
+          </div>
+
+          <div className="focus-score">
+            <div className="focus-score-icon">
+              <Timer size={17} />
+            </div>
+
+            <div>
+              <strong>
+                {focusMinutes}
+              </strong>
+
+              <span>
+                focused minutes
+              </span>
+            </div>
+          </div>
+
         </div>
 
       </div>
 
-      {/* MODES */}
+      {/* ================= CURRENT MISSION ================= */}
+
+      <section className="focus-mission">
+
+        <div className="mission-icon">
+          <Target size={21} />
+        </div>
+
+        <div className="mission-content">
+
+          <span>
+            CURRENT MISSION
+          </span>
+
+          {editingMission ? (
+
+            <div className="mission-edit">
+
+              <input
+                value={missionInput}
+                onChange={(e) =>
+                  setMissionInput(
+                    e.target.value
+                  )
+                }
+                autoFocus
+              />
+
+              <button
+                onClick={saveMission}
+              >
+                <Check size={16} />
+              </button>
+
+              <button
+                onClick={() =>
+                  setEditingMission(false)
+                }
+              >
+                <X size={16} />
+              </button>
+
+            </div>
+
+          ) : (
+
+            <div className="mission-title">
+
+              <h2>
+                {mission}
+              </h2>
+
+              <button
+                onClick={() =>
+                  setEditingMission(true)
+                }
+              >
+                <PenLine size={14} />
+                Edit
+              </button>
+
+            </div>
+
+          )}
+
+        </div>
+
+        <div className="mission-status">
+          <Zap size={15} />
+          ONE THING AT A TIME
+        </div>
+
+      </section>
+
+      {/* ================= MODES ================= */}
 
       <div className="focus-modes">
 
@@ -252,9 +467,11 @@ function Focus() {
               ? "focus-mode active"
               : "focus-mode"
           }
-          onClick={() => changeMode("focus")}
+          onClick={() =>
+            changeMode("focus")
+          }
         >
-          <Timer size={16} />
+          <Brain size={16} />
           Focus
           <span>25 min</span>
         </button>
@@ -265,7 +482,9 @@ function Focus() {
               ? "focus-mode active"
               : "focus-mode"
           }
-          onClick={() => changeMode("short")}
+          onClick={() =>
+            changeMode("short")
+          }
         >
           <Coffee size={16} />
           Short break
@@ -278,7 +497,9 @@ function Focus() {
               ? "focus-mode active"
               : "focus-mode"
           }
-          onClick={() => changeMode("long")}
+          onClick={() =>
+            changeMode("long")
+          }
         >
           <Coffee size={16} />
           Long break
@@ -287,9 +508,9 @@ function Focus() {
 
       </div>
 
-      {/* MAIN */}
+      {/* ================= MAIN GRID ================= */}
 
-      <div className="focus-layout">
+      <div className="focus-studio-grid">
 
         {/* TIMER */}
 
@@ -301,8 +522,30 @@ function Focus() {
           }
         >
 
-          <div className="focus-orbit orbit-one" />
-          <div className="focus-orbit orbit-two" />
+          <div className="timer-card-top">
+
+            <div>
+              <span>
+                {mode === "focus"
+                  ? "DEEP WORK SESSION"
+                  : "RECOVERY TIME"}
+              </span>
+
+              <h2>
+                {isRunning
+                  ? "Stay in the zone."
+                  : "Ready to focus?"}
+              </h2>
+            </div>
+
+            <div className="live-indicator">
+              <span />
+              {isRunning
+                ? "LIVE"
+                : "READY"}
+            </div>
+
+          </div>
 
           <div
             className="timer-ring"
@@ -313,7 +556,9 @@ function Focus() {
 
             <div className="timer-inner">
 
-              <Timer size={23} />
+              <div className="timer-small-icon">
+                <Timer size={19} />
+              </div>
 
               <strong>
                 {minutes}:{secs}
@@ -340,12 +585,12 @@ function Focus() {
               {isRunning ? (
                 <>
                   <Pause size={17} />
-                  Pause
+                  Pause session
                 </>
               ) : (
                 <>
                   <Play size={17} />
-                  Start Focus
+                  Start focus
                 </>
               )}
             </button>
@@ -353,6 +598,7 @@ function Focus() {
             <button
               className="secondary-button"
               onClick={resetTimer}
+              title="Reset"
             >
               <RotateCcw size={17} />
             </button>
@@ -360,220 +606,553 @@ function Focus() {
             <button
               className="secondary-button"
               onClick={skipSession}
+              title="Skip"
             >
               <SkipForward size={17} />
             </button>
 
           </div>
 
-          <div className="focus-session-label">
-            {isRunning
-              ? "Stay focused. You've got this. ✨"
-              : "Ready when you are. 💜"}
+          <div className="focus-timer-footer">
+
+            <div>
+              <Sparkles size={14} />
+
+              <span>
+                {isRunning
+                  ? "Protect this moment."
+                  : "Your next 25 minutes are yours."}
+              </span>
+            </div>
+
+            <strong>
+              {Math.round(progress)}%
+            </strong>
+
           </div>
 
         </section>
 
-        {/* STUDY CARD */}
+        {/* RIGHT SIDE */}
 
-        <section className="study-card">
+        <div className="focus-side-column">
 
-          <div className="study-card-header">
+          {/* TASKS */}
 
-            <div>
-              <span className="card-label">
-                STUDY WITH ME
-              </span>
+          <section className="focus-tasks-card">
 
-              <h2>
-                Your study atmosphere
-              </h2>
-            </div>
+            <div className="focus-card-header">
 
-            <button
-              className="sound-toggle"
-              onClick={toggleMute}
-            >
-              {muted ? (
-                <VolumeX size={17} />
-              ) : (
-                <Volume2 size={17} />
-              )}
-            </button>
+              <div>
 
-          </div>
+                <span className="card-label">
+                  TODAY'S FOCUS
+                </span>
 
-          {/* SIMPLE VIDEO */}
+                <h2>
+                  Your priorities
+                </h2>
 
-          <div className="study-video">
-
-            <div className="video-content">
-
-              <div className="video-play">
-                <Play size={22} />
               </div>
 
-              <strong>
-                Study With Me
-              </strong>
+              <div className="task-progress-mini">
+                {taskProgress}%
+              </div>
 
+            </div>
+
+            <div className="task-progress-line">
+              <span
+                style={{
+                  width: `${taskProgress}%`,
+                }}
+              />
+            </div>
+
+            <div className="focus-task-list">
+
+              {tasks.map((task) => (
+
+                <div
+                  className={
+                    task.done
+                      ? "focus-task done"
+                      : "focus-task"
+                  }
+                  key={task.id}
+                >
+
+                  <button
+                    className="focus-task-check"
+                    onClick={() =>
+                      toggleTask(task.id)
+                    }
+                  >
+                    {task.done && (
+                      <Check size={13} />
+                    )}
+                  </button>
+
+                  <span>
+                    {task.title}
+                  </span>
+
+                  <button
+                    className="focus-task-delete"
+                    onClick={() =>
+                      removeTask(task.id)
+                    }
+                  >
+                    <X size={13} />
+                  </button>
+
+                </div>
+
+              ))}
+
+            </div>
+
+            {showTaskInput ? (
+
+              <div className="quick-task-input">
+
+                <input
+                  value={newTask}
+                  onChange={(e) =>
+                    setNewTask(e.target.value)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter")
+                      addTask();
+                  }}
+                  placeholder="What do you need to do?"
+                  autoFocus
+                />
+
+                <button
+                  onClick={addTask}
+                >
+                  <Plus size={16} />
+                </button>
+
+              </div>
+
+            ) : (
+
+              <button
+                className="add-focus-task"
+                onClick={() =>
+                  setShowTaskInput(true)
+                }
+              >
+                <Plus size={15} />
+                Add priority
+              </button>
+
+            )}
+
+          </section>
+
+          {/* NOTES */}
+
+          <section className="focus-notes-card">
+
+            <div className="focus-card-header">
+
+              <div>
+
+                <span className="card-label">
+                  QUICK NOTES
+                </span>
+
+                <h2>
+                  Capture the thought.
+                </h2>
+
+              </div>
+
+              <PenLine size={18} />
+
+            </div>
+
+            <textarea
+              value={notes}
+              onChange={(e) =>
+                setNotes(e.target.value)
+              }
+              placeholder="Write ideas, reminders or things you want to remember..."
+            />
+
+            <div className="notes-footer">
               <span>
-                Quiet study session
+                {notes.length} characters
               </span>
 
-              <a
-                href="https://www.youtube.com/results?search_query=study+with+me+pomodoro"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="video-button"
-              >
-                Watch on YouTube
-                <ExternalLink size={14} />
-              </a>
-
+              <span>
+                Saved locally
+              </span>
             </div>
 
-          </div>
+          </section>
 
-          {/* AMBIENCE */}
+        </div>
 
-          <div className="ambience">
+      </div>
 
-            <span className="card-label">
-              AMBIENCE
+      {/* ================= ATMOSPHERE ================= */}
+
+      <section className="focus-atmosphere">
+
+        <div className="atmosphere-heading">
+
+          <div>
+
+            <span className="eyebrow">
+              BUILD YOUR SPACE
             </span>
 
-            <div className="ambience-options">
+            <h2>
+              Choose your atmosphere.
+            </h2>
 
-              <button
-                className={
-                  sound === "rain"
-                    ? "ambience-button active"
-                    : "ambience-button"
-                }
-                onClick={() => selectSound("rain")}
-              >
-                <CloudRain size={16} />
-                Rain
-              </button>
-
-              <button
-                className={
-                  sound === "cafe"
-                    ? "ambience-button active"
-                    : "ambience-button"
-                }
-                onClick={() => selectSound("cafe")}
-              >
-                <Coffee size={16} />
-                Café
-              </button>
-
-              <button
-                className={
-                  sound === "library"
-                    ? "ambience-button active"
-                    : "ambience-button"
-                }
-                onClick={() => selectSound("library")}
-              >
-                <Library size={16} />
-                Library
-              </button>
-
-            </div>
-
-            {/* REAL SOUND BUTTON */}
-
-            <button
-              className="rain-play-button"
-              onClick={toggleSound}
-              disabled={sound !== "rain"}
-            >
-              {soundPlaying ? (
-                <>
-                  <Pause size={17} />
-                  Pause Rain
-                </>
-              ) : (
-                <>
-                  <Play size={17} />
-                  Play Rain
-                </>
-              )}
-            </button>
-
-            <p className="sound-note">
-              {sound === "rain"
-                ? "🌧️ Relaxing rain for deeper focus."
-                : sound === "cafe"
-                ? "☕ Café ambience coming soon."
-                : "📚 Library ambience coming soon."}
+            <p>
+              Make your study environment feel
+              exactly right.
             </p>
 
           </div>
 
+          <button
+            className="sound-toggle"
+            onClick={toggleMute}
+          >
+            {muted ? (
+              <VolumeX size={17} />
+            ) : (
+              <Volume2 size={17} />
+            )}
+
+            {muted
+              ? "Muted"
+              : "Sound on"}
+          </button>
+
+        </div>
+
+        <div className="atmosphere-grid">
+
+          <button
+            className={
+              sound === "rain"
+                ? "atmosphere-option active"
+                : "atmosphere-option"
+            }
+            onClick={() =>
+              selectSound("rain")
+            }
+          >
+            <div className="atmosphere-option-icon">
+              <CloudRain size={21} />
+            </div>
+
+            <div>
+              <strong>
+                Rain
+              </strong>
+
+              <span>
+                Calm & deep
+              </span>
+            </div>
+
+            {sound === "rain" && (
+              <Check size={15} />
+            )}
+          </button>
+
+          <button
+            className={
+              sound === "cafe"
+                ? "atmosphere-option active"
+                : "atmosphere-option"
+            }
+            onClick={() =>
+              selectSound("cafe")
+            }
+          >
+            <div className="atmosphere-option-icon">
+              <Coffee size={21} />
+            </div>
+
+            <div>
+              <strong>
+                Café
+              </strong>
+
+              <span>
+                Soft background
+              </span>
+            </div>
+
+            {sound === "cafe" && (
+              <Check size={15} />
+            )}
+          </button>
+
+          <button
+            className={
+              sound === "library"
+                ? "atmosphere-option active"
+                : "atmosphere-option"
+            }
+            onClick={() =>
+              selectSound("library")
+            }
+          >
+            <div className="atmosphere-option-icon">
+              <Library size={21} />
+            </div>
+
+            <div>
+              <strong>
+                Library
+              </strong>
+
+              <span>
+                Quiet & minimal
+              </span>
+            </div>
+
+            {sound === "library" && (
+              <Check size={15} />
+            )}
+          </button>
+
+          <button className="atmosphere-option zen">
+            <div className="atmosphere-option-icon">
+              <Moon size={21} />
+            </div>
+
+            <div>
+              <strong>
+                Zen
+              </strong>
+
+              <span>
+                Coming soon
+              </span>
+            </div>
+
+            <Sparkles size={14} />
+          </button>
+
+        </div>
+
+        <div className="atmosphere-bottom">
+
+          <div className="sound-status">
+
+            <Music2 size={16} />
+
+            <span>
+              {sound === "rain"
+                ? "Rain ambience"
+                : sound === "cafe"
+                ? "Café atmosphere"
+                : "Library atmosphere"}
+            </span>
+
+            <small>
+              {soundPlaying
+                ? "Playing"
+                : "Ready"}
+            </small>
+
+          </div>
+
+          <button
+            className="rain-play-button"
+            onClick={toggleSound}
+            disabled={sound !== "rain"}
+          >
+            {soundPlaying ? (
+              <>
+                <Pause size={16} />
+                Pause ambience
+              </>
+            ) : (
+              <>
+                <Play size={16} />
+                Play ambience
+              </>
+            )}
+          </button>
+
+        </div>
+
+      </section>
+
+      {/* ================= INSIGHTS ================= */}
+
+      <div className="focus-insights-grid">
+
+        <section className="focus-insight-card">
+
+          <div className="insight-icon">
+            <BarChart3 size={20} />
+          </div>
+
+          <span>
+            TODAY'S FOCUS
+          </span>
+
+          <strong>
+            {focusMinutes} min
+          </strong>
+
+          <p>
+            You're building a stronger
+            concentration habit.
+          </p>
+
+          <div className="insight-bars">
+
+            {[30, 55, 40, 75, 60, 90, 65].map(
+              (height, index) => (
+                <span
+                  key={index}
+                  style={{
+                    height: `${height}%`,
+                  }}
+                />
+              )
+            )}
+
+          </div>
+
+        </section>
+
+        <section className="focus-insight-card">
+
+          <div className="insight-icon">
+            <Trophy size={20} />
+          </div>
+
+          <span>
+            NEXT ACHIEVEMENT
+          </span>
+
+          <strong>
+            Focus Master
+          </strong>
+
+          <p>
+            Complete 5 focus sessions
+            today to unlock it.
+          </p>
+
+          <div className="achievement-progress">
+
+            <span>
+              {sessions}
+            </span>
+
+            <div>
+              <i
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (sessions / 5) * 100
+                  )}%`,
+                }}
+              />
+            </div>
+
+            <span>
+              5
+            </span>
+
+          </div>
+
+        </section>
+
+        <section className="focus-insight-card quote-card">
+
+          <div className="insight-icon">
+            <Sparkles size={20} />
+          </div>
+
+          <span>
+            FOCUS THOUGHT
+          </span>
+
+          <p>
+            “{quotes[quoteIndex]}”
+          </p>
+
+          <button
+            onClick={() =>
+              setQuoteIndex(
+                (quoteIndex + 1) %
+                  quotes.length
+              )
+            }
+          >
+            New thought
+            <ArrowUpRightIcon />
+          </button>
+
         </section>
 
       </div>
 
-      {/* STATS */}
+      {/* ================= FOOTER TIP ================= */}
 
-      <div className="focus-bottom">
+      <section className="focus-final-banner">
 
-        <div className="focus-stat-card">
-
-          <div className="focus-stat-icon">
-            <Timer size={18} />
-          </div>
-
-          <div>
-            <strong>75 min</strong>
-            <span>Focused today</span>
-          </div>
-
+        <div className="final-banner-icon">
+          <Brain size={23} />
         </div>
 
-        <div className="focus-stat-card">
+        <div>
 
-          <div className="focus-stat-icon">
-            <Flame size={18} />
-          </div>
+          <span>
+            YOUR FOCUS RULE
+          </span>
 
-          <div>
-            <strong>{sessions}</strong>
-            <span>Sessions today</span>
-          </div>
-
-        </div>
-
-        <div className="focus-stat-card">
-
-          <div className="focus-stat-icon">
-            <CheckCircle2 size={18} />
-          </div>
-
-          <div>
-            <strong>12</strong>
-            <span>Sessions this week</span>
-          </div>
-
-        </div>
-
-        <div className="focus-quote">
-
-          <span>FOCUS TIP</span>
+          <h2>
+            One task. One session. No distractions.
+          </h2>
 
           <p>
-            Put your phone away, choose one task,
-            and give it your full attention.
+            Put your phone away, close unnecessary
+            tabs and give yourself permission to
+            focus on just one thing.
           </p>
 
         </div>
 
-      </div>
+        <div className="final-banner-stat">
+          <strong>
+            {completedTasks}
+          </strong>
+
+          <span>
+            tasks completed
+          </span>
+        </div>
+
+      </section>
 
     </div>
+  );
+}
+
+/* Small reusable arrow icon */
+
+function ArrowUpRightIcon() {
+  return (
+    <ExternalLink size={13} />
   );
 }
 

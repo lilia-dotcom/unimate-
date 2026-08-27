@@ -153,7 +153,7 @@ function Courses() {
 
       {/* HEADER */}
 
-      <div className="page-header">
+      <div className="page-header courses-header">
 
         <div>
           <span className="eyebrow">

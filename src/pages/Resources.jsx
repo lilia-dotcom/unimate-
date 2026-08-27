@@ -2,10 +2,12 @@ import {
   ArrowLeft,
   ArrowUpRight,
   BookOpen,
+  Bookmark,
   FileText,
   Link2,
   Plus,
   Search,
+  Sparkles,
   Star,
   Video,
   X,
@@ -135,6 +137,100 @@ const defaultResources = {
     },
   ],
 };
+
+
+/* =========================================================
+   MOTIVATION
+========================================================= */
+
+const motivationCards = [
+  {
+    quote:
+      "Small progress is still progress.",
+    label:
+      "TODAY'S REMINDER",
+    number:
+      "01",
+  },
+
+  {
+    quote:
+      "Your future self is watching what you do today.",
+    label:
+      "KEEP GOING",
+    number:
+      "02",
+  },
+
+  {
+    quote:
+      "Focus on the next step, not the whole staircase.",
+    label:
+      "STAY FOCUSED",
+    number:
+      "03",
+  },
+
+  {
+    quote:
+      "You don't need to be perfect. You just need to start.",
+    label:
+      "ONE STEP",
+    number:
+      "04",
+  },
+];
+
+
+/* =========================================================
+   LIBRARY
+========================================================= */
+
+const libraryItems = [
+  {
+    title:
+      "Lecture Notes",
+    description:
+      "Organize your course notes and important concepts.",
+    type:
+      "NOTES",
+    icon:
+      <BookOpen size={21} />,
+  },
+
+  {
+    title:
+      "Study Documents",
+    description:
+      "Keep PDFs, summaries and useful documents together.",
+    type:
+      "DOCUMENTS",
+    icon:
+      <FileText size={21} />,
+  },
+
+  {
+    title:
+      "Video Library",
+    description:
+      "Save helpful lectures and educational videos.",
+    type:
+      "VIDEOS",
+    icon:
+      <Video size={21} />,
+  },
+
+  {
+    title:
+      "Useful Links",
+    description:
+      "Your favorite websites and external study resources.",
+    type:
+      "LINKS",
+    icon:
+      <Link2 size={21} />,
+  },
+];
 
 
 function Resources() {
@@ -321,7 +417,9 @@ function Resources() {
 
     <div className="page resources-page">
 
-      {/* BACK */}
+      {/* =====================================================
+          BACK
+      ===================================================== */}
 
       <button
         className="back-button"
@@ -336,7 +434,9 @@ function Resources() {
       </button>
 
 
-      {/* HEADER */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
 
       <div className="page-header">
 
@@ -371,7 +471,183 @@ function Resources() {
       </div>
 
 
-      {/* SEARCH */}
+      {/* =====================================================
+          MOTIVATION
+      ===================================================== */}
+
+      <section className="motivation-section">
+
+        <div className="section-heading">
+
+          <div>
+
+            <span className="eyebrow">
+              DAILY ENERGY
+            </span>
+
+            <h2>
+              Keep going.
+            </h2>
+
+          </div>
+
+          <Sparkles
+            className="motivation-spark"
+            size={22}
+          />
+
+        </div>
+
+
+        <div className="motivation-grid">
+
+          {motivationCards.map(
+            (card, index) => (
+
+              <div
+                className="motivation-card"
+                key={card.number}
+              >
+
+                <div className="motivation-glow" />
+
+                <div className="motivation-top">
+
+                  <span>
+                    {card.label}
+                  </span>
+
+                  <strong>
+                    {card.number}
+                  </strong>
+
+                </div>
+
+
+                <div className="motivation-icon">
+
+                  <Sparkles size={18} />
+
+                </div>
+
+
+                <p>
+                  “{card.quote}”
+                </p>
+
+
+                <div className="motivation-line" />
+
+              </div>
+
+            )
+          )}
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          LIBRARY
+      ===================================================== */}
+
+      <section className="library-section">
+
+        <div className="section-heading">
+
+          <div>
+
+            <span className="eyebrow">
+              YOUR STUDY SPACE
+            </span>
+
+            <h2>
+              UniMate Library
+            </h2>
+
+            <p>
+              Everything you need, organized in one place.
+            </p>
+
+          </div>
+
+          <div className="library-badge">
+
+            <Bookmark size={16} />
+
+            Personal Library
+
+          </div>
+
+        </div>
+
+
+        <div className="library-grid">
+
+          {libraryItems.map(
+            (item) => (
+
+              <button
+                className="library-card"
+                key={item.title}
+                type="button"
+              >
+
+                <div className="library-card-top">
+
+                  <div className="library-icon">
+
+                    {item.icon}
+
+                  </div>
+
+                  <ArrowUpRight
+                    size={17}
+                    className="library-arrow"
+                  />
+
+                </div>
+
+
+                <span className="library-type">
+                  {item.type}
+                </span>
+
+
+                <h3>
+                  {item.title}
+                </h3>
+
+
+                <p>
+                  {item.description}
+                </p>
+
+
+                <div className="library-card-footer">
+
+                  <span>
+                    Explore collection
+                  </span>
+
+                  <ArrowUpRight size={14} />
+
+                </div>
+
+              </button>
+
+            )
+          )}
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          SEARCH
+      ===================================================== */}
 
       <div className="course-search">
 
@@ -402,7 +678,9 @@ function Resources() {
       </div>
 
 
-      {/* FILTERS */}
+      {/* =====================================================
+          FILTERS
+      ===================================================== */}
 
       <div className="resource-filters">
 
@@ -433,7 +711,9 @@ function Resources() {
       </div>
 
 
-      {/* SUMMARY */}
+      {/* =====================================================
+          SUMMARY
+      ===================================================== */}
 
       <div className="course-summary">
 
@@ -494,7 +774,9 @@ function Resources() {
       </div>
 
 
-      {/* RESOURCES */}
+      {/* =====================================================
+          RESOURCES
+      ===================================================== */}
 
       {filtered.length === 0 ? (
 
@@ -589,16 +871,16 @@ function Resources() {
 
 
                   <button
-  className="resource-open-button"
-  onClick={() =>
-    navigate(
-      `/courses/${courseId}/resources/${resource.id}`
-    )
-  }
->
-  Open
-  <ArrowUpRight size={15} />
-</button>
+                    className="resource-open-button"
+                    onClick={() =>
+                      navigate(
+                        `/courses/${courseId}/resources/${resource.id}`
+                      )
+                    }
+                  >
+                    Open
+                    <ArrowUpRight size={15} />
+                  </button>
 
                 </div>
 
@@ -612,7 +894,9 @@ function Resources() {
       )}
 
 
-      {/* MODAL */}
+      {/* =====================================================
+          MODAL
+      ===================================================== */}
 
       {modal && (
 
